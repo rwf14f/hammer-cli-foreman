@@ -37,7 +37,7 @@ module HammerCLIForeman
   def self.connection_options
     options = {}
     options[:ssl_ca_file] = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :ssl_ca_file)
-    options[:verify_ssl] = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :verify_ssl)
+    options[:verify_ssl] = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :verify_ssl) || (options[:ssl_ca_file] && 1 || false)
     options
   end
 
