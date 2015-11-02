@@ -34,11 +34,21 @@ module HammerCLIForeman
     config
   end
 
+  def self.connection_options
+    options = {}
+    ssl_ca_file = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :ssl_ca_file)
+    options[:ssl_ca_file] = ssl_ca_file if ssl_ca_file
+    verify_ssl = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :verify_ssl)
+    options[:verify_ssl] = verify_ssl unless verify_ssl.nil?
+    options[:verify_ssl] = 1 if options[:verify_ssl].nil? && options[:ssl_ca_file]
+    options
+  end
+
   def self.foreman_api_connection
     HammerCLI::Connection.create(
       CONNECTION_NAME,
       HammerCLI::Apipie::Command.resource_config.merge(resource_config),
-      HammerCLI::Apipie::Command.connection_options
+      HammerCLI::Apipie::Command.connection_options.merge(connection_options)
     )
   end
 
@@ -98,6 +108,10 @@ module HammerCLIForeman
 
     def self.resource_config
       super.merge(HammerCLIForeman.resource_config)
+    end
+
+    def self.connection_options
+      super.merge(HammerCLIForeman.connection_options)
     end
 
     def resolver
