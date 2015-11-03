@@ -31,6 +31,13 @@ module HammerCLIForeman
     config[:timeout] = HammerCLI::Settings.get(:foreman, :request_timeout)
     config[:timeout] = -1 if (config[:timeout] && config[:timeout].to_i < 0)
     config[:apidoc_authenticated] = false
+    rc_options = {}
+    ssl_ca_file = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :ssl_ca_file)
+    rc_options[:ssl_ca_file] = ssl_ca_file if ssl_ca_file
+    verify_ssl = HammerCLI::Settings.get(:_params, :ssl_ca_file) || HammerCLI::Settings.get(:foreman, :verify_ssl)
+    rc_options[:verify_ssl] = verify_ssl unless verify_ssl.nil?
+    rc_options[:verify_ssl] = 1 if rc_options[:verify_ssl].nil? && rc_options[:ssl_ca_file]
+    config[:rc_options] = rc_options if rc_options.length > 0
     config
   end
 
