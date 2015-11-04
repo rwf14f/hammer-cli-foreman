@@ -9,8 +9,7 @@ module HammerCLIForeman
       def execute
         HammerCLIForeman.credentials.clear
         HammerCLI::Connection.drop_all
-        HammerCLIForeman.credentials.username
-        HammerCLIForeman.credentials.password
+        HammerCLIForeman.credentials.login
         HammerCLI::EX_OK
       end
     end
