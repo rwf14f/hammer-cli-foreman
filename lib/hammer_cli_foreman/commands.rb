@@ -12,11 +12,7 @@ module HammerCLIForeman
   }
 
   def self.credentials
-    @credentials ||= BasicCredentials.new(
-      :username => (HammerCLI::Settings.get(:_params, :username) || ENV['FOREMAN_USERNAME'] || HammerCLI::Settings.get(:foreman, :username)),
-      :password => (HammerCLI::Settings.get(:_params, :password) || ENV['FOREMAN_PASSWORD'] || HammerCLI::Settings.get(:foreman, :password))
-    )
-    @credentials
+    @credentials ||= Credentials.credentials
   end
 
   def self.resource_config

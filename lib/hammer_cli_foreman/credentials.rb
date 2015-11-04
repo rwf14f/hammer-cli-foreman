@@ -1,66 +1,27 @@
-require 'highline/import'
 module HammerCLIForeman
-  class BasicCredentials < ApipieBindings::AbstractCredentials
+  module Credentials
 
-    # Can keep username and passwords credentials and prompt for them when necessary
-    # @param [Hash] params
-    # @option params [String] :username when nil, user is prompted when the attribute is accessed
-    # @option params [String] :password when nil, user is prompted when the attribute is accessed
-    # @example use container with prompt
-    #   c = HammerCLIForeman::BasicCredentials.new()
-    #   c.username
-    #   > [Foreman] Username: admin
-    #   => "admin"
-    # @example use container with preset value
-    #   c = HammerCLIForeman::BasicCredentials.new(:username => 'admin')
-    #   c.username
-    #   => "admin"
-    def initialize(params={})
-      @username = params[:username]
-      @password = params[:password]
-    end
+    require 'hammer_cli_foreman/credentials/certificate.rb'
+    require 'hammer_cli_foreman/credentials/basic.rb'
 
-    # Get username. Prompt for it when not set
-    # @return [String]
-    def username
-      @username ||= ask_user(_("[Foreman] Username: ")) if HammerCLI.interactive?
-      @username
-    end
-
-    # Get password. Prompt for it when not set. Password characters are replaced with asterisks on the screen.
-    # @return [String]
-    def password
-      @password ||= ask_user(_("[Foreman] Password for %s: ") % username, true) if HammerCLI.interactive?
-      @password
-    end
-
-    def empty?
-      !@username && !@password
-    end
-
-    def clear
-      super
-      @username = nil
-      @password = nil
-    end
-
-    # Convert credentials to hash usable for merging to RestClient configuration.
-    # @return [Hash]
-    def to_params
-      {
-        :user => username,
-        :password => password
-      }
-    end
-
-    private
-
-    def ask_user(prompt, silent=false)
-      if silent
-        ask(prompt) {|q| q.echo = false}
+    def self.credentials
+      username = HammerCLI::Settings.get(:_params, :username) || ENV['FOREMAN_USERNAME'] || HammerCLI::Settings.get(:foreman, :username)
+      password = HammerCLI::Settings.get(:_params, :password) || ENV['FOREMAN_PASSWORD'] || HammerCLI::Settings.get(:foreman, :password)
+      ssl_client_cert = HammerCLI::Settings.get(:_params, :ssl_client_cert) || ENV['FOREMAN_CLIENTCERT'] || HammerCLI::Settings.get(:foreman, :ssl_client_cert)
+      ssl_client_key = HammerCLI::Settings.get(:_params, :ssl_client_key) || ENV['FOREMAN_CLIENTKEY'] || HammerCLI::Settings.get(:foreman, :ssl_client_key)
+      cred = nil
+      if ssl_client_cert && ssl_client_key
+        cred = CertificateCredentials.new(
+          :ssl_client_cert => ssl_client_cert,
+          :ssl_client_key  => ssl_client_key
+        )
       else
-        ask(prompt)
+        cred = BasicCredentials.new(
+          :username => username,
+          :password => password,
+        )
       end
+      cred
     end
 
   end
