@@ -10,7 +10,8 @@ module HammerCLIForeman
         default_params = build_default_params(settings, logger, locale)
         super(default_params,
           :logger => logger,
-          :reload_cache => settings.get(:_params, :reload_cache) || settings.get(:reload_cache)
+          :reload_cache => settings.get(:_params, :reload_cache) || settings.get(:reload_cache),
+          :rc_options => get_ssl_options(settings)
         )
       end
 
@@ -38,6 +39,19 @@ module HammerCLIForeman
         )
         @authenticator = SessionAuthenticatorWrapper.new(@authenticator, uri) if settings.get(:foreman, :use_sessions)
         @authenticator
+      end
+
+      def get_ssl_options(settings)
+        ssl_options = {}
+        for sslopt in [:ssl_ca_file, :ssl_ca_path] do
+          ssloptval = settings.get(:_params, sslopt) || settings.get(:foreman, sslopt)
+          ssl_options[sslopt] = ssloptval if ssloptval
+        end
+        verify_ssl = settings.get(:_params, :verify_ssl) || settings.get(:foreman, :verify_ssl)
+        ssl_options[:verify_ssl] = verify_ssl unless verify_ssl.nil?
+        # enable ssl verification if verify_ssl is not configured and either CA file or path are present
+        ssl_options[:verify_ssl] = 1 if ssl_options[:verify_ssl].nil? && (ssl_options[:ssl_ca_file] || ssl_options[:ssl_ca_path])
+        ssl_options
       end
 
       def build_default_params(settings, logger, locale)
